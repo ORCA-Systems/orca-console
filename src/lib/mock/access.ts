@@ -59,6 +59,62 @@ export function getLatestUtilisation(): UtilisationSample | undefined {
   return history.length > 0 ? history[history.length - 1] : undefined;
 }
 
+/* ---------- Utilisation time windows ---------- */
+
+export interface UtilisationWindow {
+  samples: UtilisationSample[];
+  intervalMinutes: number;
+}
+
+function interpolateBetween(
+  a: UtilisationSample,
+  b: UtilisationSample,
+  intervalMinutes: number
+): UtilisationSample[] {
+  const stepMs = intervalMinutes * 60 * 1000;
+  const aTime = new Date(a.timestamp).getTime();
+  const bTime = new Date(b.timestamp).getTime();
+  const out: UtilisationSample[] = [];
+  let t = aTime;
+  while (t < bTime) {
+    const ratio = (t - aTime) / (bTime - aTime);
+    out.push({
+      timestamp: new Date(t).toISOString(),
+      cpuPercent: Math.round(a.cpuPercent + (b.cpuPercent - a.cpuPercent) * ratio),
+      memoryPercent: Math.round(a.memoryPercent + (b.memoryPercent - a.memoryPercent) * ratio),
+      acceleratorPercent: Math.round(
+        a.acceleratorPercent + (b.acceleratorPercent - a.acceleratorPercent) * ratio
+      ),
+      powerWatts: Math.round(a.powerWatts + (b.powerWatts - a.powerWatts) * ratio),
+    });
+    t += stepMs;
+  }
+  return out;
+}
+
+export function getUtilisationWindow(hours: number): UtilisationWindow {
+  const history = MOCK_DATA.utilisationHistory;
+  const latestTime = new Date(history[history.length - 1].timestamp).getTime();
+  const cutoff = latestTime - hours * 3600 * 1000;
+  const windowSamples = history.filter(
+    (s) => new Date(s.timestamp).getTime() >= cutoff
+  );
+
+  const intervalMinutes = hours <= 6 ? 15 : hours <= 12 ? 30 : 60;
+  if (intervalMinutes >= 60 || windowSamples.length < 2) {
+    return { samples: windowSamples, intervalMinutes };
+  }
+
+  const interpolated: UtilisationSample[] = [];
+  for (let i = 0; i < windowSamples.length - 1; i++) {
+    interpolated.push(
+      ...interpolateBetween(windowSamples[i], windowSamples[i + 1], intervalMinutes)
+    );
+  }
+  interpolated.push(windowSamples[windowSamples.length - 1]);
+  return { samples: interpolated, intervalMinutes };
+}
+
 /* ---------- Workloads ---------- */
 
 export function getWorkloads(): Workload[] {

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Shell } from './components/shell/Shell';
+import { Overview } from './pages/Overview';
 import { PagePlaceholder } from './components/PagePlaceholder';
-import { ROUTES, RoutePath } from './lib/routes';
+import { ROUTES, RoutePath, routeLabel } from './lib/routes';
 
 export function App() {
   const [path, setPath] = useState<RoutePath>(() => {
@@ -30,11 +31,9 @@ export function App() {
     }
   }, []);
 
-  const activeRoute = ROUTES.find((r) => r.path === path) || ROUTES[0];
-
   return (
     <Shell currentPath={path} navigate={navigate}>
-      <PagePlaceholder route={activeRoute} />
+      {path === '#/overview' ? <Overview /> : <PagePlaceholder route={{ path, label: routeLabel(path) }} />}
     </Shell>
   );
 }
