@@ -115,19 +115,20 @@ function iso(offsetHours: number): string {
 // Deterministic pseudo-random values in sensible bounds, no spikes or noise.
 function utilSample(offsetHours: number): UtilisationSample {
   const hour = ((offsetHours % 24) + 24) % 24;
-  // Gentle sine wave so utilisation stays within realistic bounds.
-  const base = 50 + 20 * Math.sin((hour / 24) * 2 * Math.PI);
+  // Gentle sine waves with modest jitter so utilisation stays within realistic bounds.
+  const cpu = Math.round(55 + 18 * Math.sin((hour / 24) * 2 * Math.PI) + Math.sin(hour * 0.7) * 4);
+  const memory = Math.round(65 + 14 * Math.sin((hour / 12) * Math.PI) + Math.cos(hour * 0.5) * 3);
   return {
     timestamp: iso(-offsetHours),
-    cpuPercent: Math.round(base + (hour % 3) * 2),
-    memoryPercent: Math.round(60 + (hour % 5) * 1.5),
+    cpuPercent: Math.min(75, Math.max(35, cpu)),
+    memoryPercent: Math.min(80, Math.max(50, memory)),
     acceleratorPercent: Math.round(40 + 25 * Math.sin((hour / 12) * Math.PI)),
     powerWatts: Math.round(350 + 80 * Math.sin((hour / 8) * Math.PI)),
   };
 }
 
 export const UTILISATION_HISTORY: UtilisationSample[] = Array.from(
-  { length: 24 },
+  { length: 25 },
   (_, i) => utilSample(-i)
 ).reverse(); // oldest first
 

@@ -68,7 +68,8 @@ export function UtilisationChart({ samples }: UtilisationChartProps) {
             tick={{ fontSize: 'var(--text-xs)', fill: 'var(--color-text-muted)' }}
             tickMargin={10}
             type="category"
-            tickCount={3}
+            tickCount={5}
+            interval="preserveStartEnd"
             domain={['dataMin', 'dataMax']}
           />
 
@@ -77,7 +78,7 @@ export function UtilisationChart({ samples }: UtilisationChartProps) {
             tickFormatter={(value: number) => `${value}%`}
             ticks={[0, 25, 50, 75, 100]}
             tick={{ fontSize: 'var(--text-xs)', fill: 'var(--color-text-muted)', textAnchor: 'end' }}
-            tickMargin={-10}
+            tickMargin={10}
             width={56}
           />
 

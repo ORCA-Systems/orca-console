@@ -66,53 +66,48 @@ export interface UtilisationWindow {
   intervalMinutes: number;
 }
 
-function interpolateBetween(
-  a: UtilisationSample,
-  b: UtilisationSample,
-  intervalMinutes: number
-): UtilisationSample[] {
-  const stepMs = intervalMinutes * 60 * 1000;
-  const aTime = new Date(a.timestamp).getTime();
-  const bTime = new Date(b.timestamp).getTime();
-  const out: UtilisationSample[] = [];
-  let t = aTime;
-  while (t < bTime) {
-    const ratio = (t - aTime) / (bTime - aTime);
-    out.push({
-      timestamp: new Date(t).toISOString(),
-      cpuPercent: Math.round(a.cpuPercent + (b.cpuPercent - a.cpuPercent) * ratio),
-      memoryPercent: Math.round(a.memoryPercent + (b.memoryPercent - a.memoryPercent) * ratio),
-      acceleratorPercent: Math.round(
-        a.acceleratorPercent + (b.acceleratorPercent - a.acceleratorPercent) * ratio
-      ),
-      powerWatts: Math.round(a.powerWatts + (b.powerWatts - a.powerWatts) * ratio),
-    });
-    t += stepMs;
-  }
-  return out;
+/* ---------- Utilisation time windows ---------- */
+
+export interface UtilisationWindow {
+  samples: UtilisationSample[];
+  intervalMinutes: number;
+}
+
+// Anchor for every simulated window: 12:00 PM on 2026-11-21.
+const NOW_MS = new Date('2026-11-21T12:00:00Z').getTime();
+
+function windowSample(timestampMs: number, windowId: string): UtilisationSample {
+  const date = new Date(timestampMs);
+  const hour = date.getUTCHours() + date.getUTCMinutes() / 60;
+  // Each window uses a distinct phase so its values are independent of the others.
+  const phase = windowId === '6h' ? 0 : windowId === '12h' ? 2 : 4;
+  const cpu = Math.round(
+    55 + 18 * Math.sin(((hour + phase) / 24) * 2 * Math.PI) + Math.sin(hour * 0.9 + phase) * 5
+  );
+  const memory = Math.round(
+    65 + 14 * Math.sin(((hour + phase) / 12) * Math.PI) + Math.cos(hour * 0.6 + phase) * 4
+  );
+  return {
+    timestamp: new Date(timestampMs).toISOString(),
+    cpuPercent: Math.min(75, Math.max(35, cpu)),
+    memoryPercent: Math.min(80, Math.max(50, memory)),
+    acceleratorPercent: Math.round(40 + 25 * Math.sin((hour / 12) * Math.PI)),
+    powerWatts: Math.round(350 + 80 * Math.sin((hour / 8) * Math.PI)),
+  };
 }
 
 export function getUtilisationWindow(hours: number): UtilisationWindow {
-  const history = MOCK_DATA.utilisationHistory;
-  const latestTime = new Date(history[history.length - 1].timestamp).getTime();
-  const cutoff = latestTime - hours * 3600 * 1000;
-  const windowSamples = history.filter(
-    (s) => new Date(s.timestamp).getTime() >= cutoff
-  );
-
   const intervalMinutes = hours <= 6 ? 15 : hours <= 12 ? 30 : 60;
-  if (intervalMinutes >= 60 || windowSamples.length < 2) {
-    return { samples: windowSamples, intervalMinutes };
+  const stepMs = intervalMinutes * 60 * 1000;
+  const endTime = NOW_MS;
+  const startTime = endTime - hours * 3600 * 1000;
+  const count = (hours * 60) / intervalMinutes + 1;
+  const windowId = `${hours}h`;
+  const samples: UtilisationSample[] = [];
+  for (let i = 0; i < count; i++) {
+    samples.push(windowSample(startTime + i * stepMs, windowId));
   }
-
-  const interpolated: UtilisationSample[] = [];
-  for (let i = 0; i < windowSamples.length - 1; i++) {
-    interpolated.push(
-      ...interpolateBetween(windowSamples[i], windowSamples[i + 1], intervalMinutes)
-    );
-  }
-  interpolated.push(windowSamples[windowSamples.length - 1]);
-  return { samples: interpolated, intervalMinutes };
+  return { samples, intervalMinutes };
 }
 
 /* ---------- Workloads ---------- */
