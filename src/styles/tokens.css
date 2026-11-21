@@ -1,0 +1,96 @@
+/* Design tokens — Orca Console
+   Editorial minimalism for serious infrastructure software.
+   Restrained warm-neutral palette with a single muted accent.
+   No gradients, no neon, no glass, no bento.
+*/
+
+:root {
+  /* ---------- Colour ---------- */
+  --color-bg: #F7F5F1;            /* warm off-white surface */
+  --color-surface: #FFFFFF;       /* raised panel surface */
+  --color-surface-hover: #F2EFEA; /* subtle hover on panels */
+
+  --color-text-primary: #232326;  /* deep charcoal, not pure black */
+  --color-text-secondary: #5C5C62;
+  --color-text-muted: #949396;    /* captions, compact labels */
+  --color-text-inverse: #FFFFFF;
+
+  --color-border: #D9D5CF;        /* subtle warm neutral border */
+  --color-border-hover: #C9C4BC;
+  --color-border-focus: #5C6B7A;
+
+  --color-accent: #5C6B7A;        /* muted slate — the single accent */
+  --color-accent-hover: #4A5865;
+  --color-accent-active: #3B4752;
+  --color-accent-bg: #EEF0F2;     /* subtle accent tint for chips */
+
+  /* Status — muted, never neon */
+  --color-success: #3F6E51;
+  --color-success-bg: #EFF3F0;
+  --color-success-text: #2F523C;
+  --color-warning: #8A6E2D;
+  --color-warning-bg: #F7F2E6;
+  --color-warning-text: #6E5420;
+  --color-error: #9B4040;
+  --color-error-bg: #F9ECEC;
+  --color-error-text: #7B3131;
+  --color-info: #5C6B7A;
+  --color-info-bg: #EEF0F2;
+  --color-info-text: #4A5865;
+
+  /* ---------- Typography ---------- */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-serif: Georgia, "Times New Roman", Times, "Noto Serif", serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco,
+    Consolas, "Liberation Mono", monospace;
+
+  /* Type scale (modular, ~1.25) */
+  --text-xs: 0.75rem;      /* 12px — compact data labels */
+  --text-sm: 0.875rem;     /* 14px */
+  --text-base: 1rem;       /* 16px — body */
+  --text-lg: 1.125rem;     /* 18px */
+  --text-xl: 1.25rem;      /* 20px */
+  --text-display-sm: 1.5rem;   /* 24px */
+  --text-display-md: 2rem;     /* 32px */
+  --text-display-lg: 2.75rem;  /* 44px — major headings only */
+
+  /* Line heights */
+  --leading-tight: 1.2;
+  --leading-snug: 1.35;
+  --leading-normal: 1.55;
+  --leading-relaxed: 1.8;
+
+  /* Font weights */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* ---------- Spacing ---------- */
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+
+  /* ---------- Borders & radii ---------- */
+  --border-width: 1px;
+  --border-style: solid;
+  --radius-sm: 3px;
+  --radius: 5px;        /* subtle, not bento-card round */
+  --radius-md: 8px;
+
+  /* ---------- Shadows ---------- */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06),
+    0 1px 2px -1px rgb(0 0 0 / 0.04);
+
+  /* ---------- Focus ---------- */
+  --focus-ring: 0 0 0 2px var(--color-border-focus);
+  --focus-outline-offset: 2px;
+}
