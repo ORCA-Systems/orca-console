@@ -7,11 +7,11 @@ export function Wordmark({ className = '' }: WordmarkProps) {
     <a
       href="#/overview"
       className={`wordmark ${className}`}
-      aria-label="Orca Systems"
-      title="Orca Systems"
+      aria-label="Orca Console"
+      title="Orca Console"
     >
-      <span className="wordmark__mark">ORCA</span>
-      <span className="wordmark__systems">Systems</span>
+      <span className="wordmark__mark">Orca</span>
+      <span className="wordmark__systems">Console</span>
     </a>
   );
 }

@@ -27,7 +27,7 @@
 - `src/components/shell/Shell.tsx` — layout shell (sidebar + header + main), owns sidebar open/close state
 - `src/components/shell/Sidebar.tsx` — persistent desktop navigation; drawer on tablet/mobile
 - `src/components/shell/Header.tsx` — top header with page context and contextual actions
-- `src/components/shell/Wordmark.tsx` — ORCA Systems wordmark (sans-serif typographic treatment)
+- `src/components/shell/Wordmark.tsx` — Orca Console wordmark (sans-serif typographic treatment)
 - `src/components/PagePlaceholder.tsx` — temporary placeholder showing selected page name
 - `src/pages/DesignTest.tsx` — design-review artifact, not currently mounted
 - `src/pages/`, `src/components/`, `src/hooks/`, `src/utils/`, `src/types/` are placeholder directories awaiting the dashboard
