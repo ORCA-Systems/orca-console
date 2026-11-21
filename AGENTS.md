@@ -12,24 +12,37 @@
 - React 19 + TypeScript (strict) + Vite; static frontend only, no backend, no real hardware — target host is GitHub Pages
 - `dist/` and `node_modules/` are gitignored; do not commit them
 - No component library and no dashboard template; keep dependencies minimal
-- Do not build dashboard pages yet (out of scope for this phase)
+- Do not build full dashboard pages yet (out of scope for this phase)
 
 ## Design system (honor these)
 - Tokens: `src/styles/tokens.css` (colours, type scale, spacing, borders, radii, shadows, focus states)
 - Global styles: `src/styles/global.css`; component styles: `src/styles/components.css`; both imported via `src/index.css`
 - Palette: warm off-white surfaces, deep charcoal text, subtle borders, one muted slate accent — no gradients, neon, glassmorphism, bento cards, oversized icons, or animation
-- Typography: sans-serif only — system sans for UI and headings, monospace for technical data; no serif faces
+- Typography: sans-serif exclusively — system sans for UI and headings, monospace for technical data; no serif faces anywhere
 - Status colours are muted (green/amber/red/slate) with tinted backgrounds — never neon
 
 ## Structure & entry points
 - Entry: `index.html` → `src/main.tsx` → `src/App.tsx`
-- `App.tsx` temporarily mounts `src/pages/DesignTest.tsx` (the visual design-review page); the real dashboard shell/pages are not yet built
+- `src/lib/routes.ts` — hash-based route definitions (5 destinations: Overview, Compute, Workloads, Activity, Settings)
+- `src/components/shell/Shell.tsx` — layout shell (sidebar + header + main), owns sidebar open/close state
+- `src/components/shell/Sidebar.tsx` — persistent desktop navigation; drawer on tablet/mobile
+- `src/components/shell/Header.tsx` — top header with page context and contextual actions
+- `src/components/shell/Wordmark.tsx` — ORCA Systems wordmark (sans-serif typographic treatment)
+- `src/components/PagePlaceholder.tsx` — temporary placeholder showing selected page name
+- `src/pages/DesignTest.tsx` — design-review artifact, not currently mounted
 - `src/pages/`, `src/components/`, `src/hooks/`, `src/utils/`, `src/types/` are placeholder directories awaiting the dashboard
 - `public/` holds static assets (e.g. `vite.svg` favicon)
 
+## Routing
+- Hash-based routing (`#/overview`, `#/compute`, etc.) — compatible with GitHub Pages, no server-side rewrites needed
+- Navigation updates `window.location.hash` and listens to `hashchange` events
+- Active state indicated via `aria-current="page"` and accent-tinted background
+
 ## TypeScript quirks
-- `tsconfig.json` references `tsconfig.node.json`, which requires `composite: true` (Vite project-references requirement) — do not remove or disable it
+- `tsconfig.json` references `tsconfig.node.json`, which requires `composite: true` — do not remove or disable it
+- `react-jsx` JSX transform: do not import `React` as a value in components; import types (e.g. `ReactNode`) individually when needed
 
 ## What to avoid
+- Do not add serif fonts — sans-serif exclusively
 - Do not add a UI component library or prebuilt dashboard template
 - Do not commit `node_modules/` or `dist/`
