@@ -24,6 +24,10 @@
 ## Structure & entry points
 - Entry: `index.html` → `src/main.tsx` → `src/App.tsx`
 - `src/lib/routes.ts` — hash-based route definitions (5 destinations: Overview, Compute, Workloads, Activity, Settings)
+- `src/lib/mock/types.ts` — strict TypeScript types for node, devices, utilisation, workloads, activity, logs, settings
+- `src/lib/mock/data.ts` — centralised mock dataset (single source of truth; never imported directly by UI)
+- `src/lib/mock/access.ts` — data access layer (single seam; all UI data reads go here)
+- `src/lib/mock/invariants.ts` — data invariant checks (validateInvariants / assertInvariants)
 - `src/components/shell/Shell.tsx` — layout shell (sidebar + header + main), owns sidebar open/close state
 - `src/components/shell/Sidebar.tsx` — persistent desktop navigation; drawer on tablet/mobile
 - `src/components/shell/Header.tsx` — top header with page context and contextual actions
@@ -37,6 +41,13 @@
 - Hash-based routing (`#/overview`, `#/compute`, etc.) — compatible with GitHub Pages, no server-side rewrites needed
 - Navigation updates `window.location.hash` and listens to `hashchange` events
 - Active state indicated via `aria-current="page"` and accent-tinted background
+
+## Mock data layer
+- All mock data lives in `src/lib/mock/`; UI components must import from `src/lib/mock/access.ts` only
+- `src/lib/mock/data.ts` holds the raw dataset — do not import it from UI components
+- `validateInvariants()` / `assertInvariants()` check consistency (bounds, state/timestamp agreement, resource limits, references)
+- Data is fictional: node `node-01`, workloads `wk-101`–`wk-104`, utilisation history, activity events, synthetic logs
+- No backend, database, auth, state-management framework, or hardware SDK
 
 ## TypeScript quirks
 - `tsconfig.json` references `tsconfig.node.json`, which requires `composite: true` — do not remove or disable it
