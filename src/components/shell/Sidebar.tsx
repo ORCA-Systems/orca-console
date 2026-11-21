@@ -4,11 +4,12 @@ import { ROUTES, RoutePath } from '../../lib/routes';
 interface SidebarProps {
   currentPath: RoutePath;
   navigate: (path: RoutePath) => void;
+  isOpen: boolean;
 }
 
-export function Sidebar({ currentPath, navigate }: SidebarProps) {
+export function Sidebar({ currentPath, navigate, isOpen }: SidebarProps) {
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
       <div className="sidebar__brand">
         <Wordmark className="wordmark--sidebar" />
       </div>

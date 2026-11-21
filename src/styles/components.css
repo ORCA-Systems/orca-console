@@ -298,8 +298,9 @@
 
 /* ---------- Shell layout ---------- */
 .shell {
-  display: grid;
-  grid-template-columns: 260px 1fr;
+  position: relative;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
@@ -387,12 +388,13 @@
   padding: var(--space-1) var(--space-3);
 }
 
-/* Shell body */
+/* Shell body — flex container filling remaining viewport */
 .shell__body {
-  margin-left: 260px;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  flex: 1;
+  min-width: 0;
+  margin-left: 260px;
   background-color: var(--color-bg);
 }
 
@@ -424,6 +426,7 @@
 
 .shell__main {
   flex: 1;
+  min-width: 0;
   padding: var(--space-8) var(--space-6);
   overflow-y: auto;
 }
@@ -431,6 +434,7 @@
 .page-container {
   max-width: 1000px;
   margin: 0 auto;
+  width: 100%;
 }
 
 /* Page placeholder */
@@ -451,8 +455,8 @@
 
 /* ---------- Responsive: tablet & mobile ---------- */
 @media (max-width: 1023px) {
-  .shell {
-    grid-template-columns: 1fr;
+  .shell__body {
+    margin-left: 0;
   }
 
   .sidebar {
@@ -468,10 +472,6 @@
 
   .sidebar--open {
     transform: translateX(0);
-  }
-
-  .shell__body {
-    margin-left: 0;
   }
 
   .shell__menu-button {

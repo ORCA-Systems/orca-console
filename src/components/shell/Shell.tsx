@@ -18,7 +18,11 @@ export function Shell({ children, currentPath, navigate }: ShellProps) {
         Skip to content
       </a>
 
-      <Sidebar currentPath={currentPath} navigate={navigate} />
+      <Sidebar
+        currentPath={currentPath}
+        navigate={navigate}
+        isOpen={sidebarOpen}
+      />
 
       <div className="shell__body">
         <Header

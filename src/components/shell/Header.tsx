@@ -1,8 +1,8 @@
 import { Wordmark } from './Wordmark';
-import { ROUTES } from '../../lib/routes';
+import { ROUTES, RoutePath } from '../../lib/routes';
 
 interface HeaderProps {
-  currentPath: string;
+  currentPath: RoutePath;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
 }
