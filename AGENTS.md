@@ -18,7 +18,7 @@
 - Tokens: `src/styles/tokens.css` (colours, type scale, spacing, borders, radii, shadows, focus states)
 - Global styles: `src/styles/global.css`; component styles: `src/styles/components.css`; both imported via `src/index.css`
 - Palette: warm off-white surfaces, deep charcoal text, subtle borders, one muted slate accent — no gradients, neon, glassmorphism, bento cards, oversized icons, or animation
-- Typography: system sans-serif for UI, editorial serif for major headings only, monospace for technical data
+- Typography: sans-serif only — system sans for UI and headings, monospace for technical data; no serif faces
 - Status colours are muted (green/amber/red/slate) with tinted backgrounds — never neon
 
 ## Structure & entry points

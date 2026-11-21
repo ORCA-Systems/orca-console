@@ -30,7 +30,7 @@ h4,
 h5,
 h6 {
   margin: 0 0 var(--space-4);
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
   color: var(--color-text-primary);
