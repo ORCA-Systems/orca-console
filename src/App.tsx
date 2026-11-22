@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Shell } from './components/shell/Shell';
 import { Overview } from './pages/Overview';
+import { Compute } from './pages/Compute';
 import { PagePlaceholder } from './components/PagePlaceholder';
 import { ROUTES, RoutePath, routeLabel } from './lib/routes';
 
@@ -33,7 +34,7 @@ export function App() {
 
   return (
     <Shell currentPath={path} navigate={navigate}>
-      {path === '#/overview' ? <Overview /> : <PagePlaceholder route={{ path, label: routeLabel(path) }} />}
+      {path === '#/overview' ? <Overview /> : path === '#/compute' ? <Compute /> : <PagePlaceholder route={{ path, label: routeLabel(path) }} />}
     </Shell>
   );
 }

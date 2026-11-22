@@ -1,4 +1,3 @@
-import { Wordmark } from './Wordmark';
 import { ROUTES, RoutePath } from '../../lib/routes';
 
 interface HeaderProps {
@@ -25,7 +24,6 @@ export function Header({ currentPath, sidebarOpen, setSidebarOpen }: HeaderProps
           ☰
         </span>
       </button>
-      <Wordmark className="wordmark--header" />
       <h1 className="shell__title">{label}</h1>
       <div className="shell__actions" aria-label="Contextual actions">
         {/* Reserved for page-level actions */}
