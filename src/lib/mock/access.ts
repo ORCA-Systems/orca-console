@@ -13,6 +13,7 @@ import type {
   NodeDevices,
   UtilisationSample,
   Workload,
+  WorkloadState,
   ActivityEvent,
   LogEntry,
   DemoSettings,
@@ -122,6 +123,149 @@ export function getWorkload(id: string): Workload | undefined {
 
 export function getWorkloadsByState(state: Workload['state']): Workload[] {
   return MOCK_DATA.workloads.filter((w) => w.state === state);
+}
+
+/* ---------- Workload actions (local simulation only) ----------
+
+   Actions mutate the shared mock dataset so a state change survives
+   navigating between pages, and every successful action appends an entry to
+   the shared activity feed. Nothing here starts, stops or retries a real job.
+
+   The simulated clock starts where the mock dataset ends, so generated
+   timestamps stay after every seeded event and runtime totals stay sensible.
+*/
+
+export type WorkloadAction = 'start' | 'stop' | 'retry';
+
+const ALLOWED_WORKLOAD_ACTIONS: Record<WorkloadState, WorkloadAction[]> = {
+  pending: ['start'],
+  running: ['stop'],
+  failed: ['retry'],
+  succeeded: [],
+  cancelled: ['start'],
+};
+
+const SIMULATION_START_MS = new Date('2026-11-21T12:00:00Z').getTime();
+let simulationClockMs = SIMULATION_START_MS;
+
+/** Current simulated time, used to calculate runtimes in the UI. */
+export function getSimulationNow(): string {
+  return new Date(simulationClockMs).toISOString();
+}
+
+function advanceSimulationClock(): string {
+  simulationClockMs += 60 * 1000;
+  return new Date(simulationClockMs).toISOString();
+}
+
+export function getAvailableWorkloadActions(
+  state: WorkloadState
+): WorkloadAction[] {
+  return ALLOWED_WORKLOAD_ACTIONS[state];
+}
+
+/** Returns an explanation when the action is not valid, otherwise null. */
+export function checkWorkloadAction(
+  workload: Workload,
+  action: WorkloadAction
+): string | null {
+  if (getAvailableWorkloadActions(workload.state).includes(action)) {
+    return null;
+  }
+  const label = workload.state.charAt(0).toUpperCase() + workload.state.slice(1);
+  return `Cannot ${action} ${workload.id}: ${workload.name} is ${label.toLowerCase()}.`;
+}
+
+export interface WorkloadActionResult {
+  ok: boolean;
+  workload: Workload | null;
+  message: string;
+}
+
+/**
+ * Applies a start, stop or retry transition to a workload in the shared mock
+ * dataset. Invalid transitions return ok: false and change nothing.
+ */
+export function applyWorkloadAction(
+  id: string,
+  action: WorkloadAction
+): WorkloadActionResult {
+  const workload = MOCK_DATA.workloads.find((w) => w.id === id);
+  if (!workload) {
+    return { ok: false, workload: null, message: `Unknown workload ${id}.` };
+  }
+
+  const blocked = checkWorkloadAction(workload, action);
+  if (blocked) {
+    return { ok: false, workload, message: blocked };
+  }
+
+  const timestamp = advanceSimulationClock();
+  let next: Workload;
+  let message: string;
+  let activityMessage: string;
+
+  switch (action) {
+    case 'start':
+      next = {
+        ...workload,
+        state: 'running',
+        startedAt: timestamp,
+        completedAt: undefined,
+      };
+      message = `Started ${workload.id} — marked running (simulated).`;
+      activityMessage = `Workload ${workload.id} started (simulated)`;
+      break;
+    case 'stop':
+      next = { ...workload, state: 'cancelled', completedAt: timestamp };
+      message = `Stopped ${workload.id} — marked cancelled (simulated).`;
+      activityMessage = `Workload ${workload.id} stopped (simulated)`;
+      break;
+    case 'retry':
+      next = {
+        ...workload,
+        state: 'pending',
+        submittedAt: timestamp,
+        startedAt: undefined,
+        completedAt: undefined,
+      };
+      message = `Retried ${workload.id} — re-queued as pending (simulated).`;
+      activityMessage = `Workload ${workload.id} retried and re-queued (simulated)`;
+      break;
+  }
+
+  MOCK_DATA.workloads = MOCK_DATA.workloads.map((w) =>
+    w.id === id ? next : w
+  );
+
+  appendActivity({
+    timestamp,
+    severity: 'info',
+    source: 'console',
+    message: activityMessage,
+    workloadId: id,
+  });
+
+  return { ok: true, workload: next, message };
+}
+
+/* ---------- Activity writes (local simulation only) ----------
+
+   The prototype keeps every mutation in the browser. appendActivity lets a
+   page record an outcome into the shared activity feed so the Activity page
+   (and any future consumer of the access layer) sees it.
+*/
+
+let localActivityCounter = 0;
+
+export function appendActivity(event: Omit<ActivityEvent, 'id'>): ActivityEvent {
+  localActivityCounter += 1;
+  const entry: ActivityEvent = {
+    id: `evt-local-${localActivityCounter}`,
+    ...event,
+  };
+  MOCK_DATA.activity.push(entry);
+  return entry;
 }
 
 /* ---------- Activity & logs ---------- */
