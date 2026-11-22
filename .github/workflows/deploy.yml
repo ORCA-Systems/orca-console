@@ -10,9 +10,6 @@ on:
 
 permissions:
   contents: read
-  actions: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: "pages"
@@ -21,14 +18,20 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
-      - name: Set up Node.js (LTS)
+      - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: lts/*
+          node-version: 24
           cache: 'npm'
 
       - name: Install dependencies
@@ -39,6 +42,29 @@ jobs:
         env:
           VITE_BASE: /orca-console/
 
+      - name: Remove stale Pages artifacts
+        if: github.run_attempt > 1
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          artifact_ids=$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?per_page=100" \
+            --jq '.artifacts[] | select(.name == "github-pages") | .id')
+
+          if [ -z "$artifact_ids" ]; then
+            echo "No stale github-pages artifacts found."
+            exit 0
+          fi
+
+          while IFS= read -r artifact_id; do
+            echo "Deleting stale github-pages artifact $artifact_id."
+            gh api -X DELETE \
+              "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id"
+          done <<< "$artifact_ids"
+
       - name: Upload build artifact
         uses: actions/upload-pages-artifact@v5
         with:
@@ -46,31 +72,45 @@ jobs:
 
   deploy:
     needs: build
+    if: success() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url }}
     steps:
       - name: Wait for Pages artifact
+        timeout-minutes: 2
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          for attempt in $(seq 1 20); do
-            count=$(gh api \
-              "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" \
-              --jq '[.artifacts[] | select(.name == "github-pages")] | length')
+          set -uo pipefail
 
-            if [ "$count" -eq 1 ]; then
-              echo "github-pages artifact is available."
-              exit 0
+          for attempt in {1..30}; do
+            if count=$(gh api \
+              "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?per_page=100" \
+              --jq '[.artifacts[] | select(.name == "github-pages")] | length' 2>/dev/null); then
+              if ! [[ "$count" =~ ^[0-9]+$ ]]; then
+                echo "Attempt $attempt/30: unexpected artifact count; retrying in 3s."
+              elif [ "$count" -eq 1 ]; then
+                echo "github-pages artifact is available."
+                exit 0
+              elif [ "$count" -gt 1 ]; then
+                echo "::error::Found $count github-pages artifacts for this run. Re-run only the failed deploy job, or delete the stale artifacts, before retrying."
+                exit 1
+              else
+                echo "Attempt $attempt/30: github-pages artifact not visible yet; waiting 3s."
+              fi
+            else
+              echo "Attempt $attempt/30: artifact lookup failed; retrying in 3s."
             fi
 
-            if [ "$count" -gt 1 ]; then
-              echo "::error::Found $count github-pages artifacts for this run. Re-run only the failed deploy job, or delete the stale artifacts, before retrying."
-              exit 1
-            fi
-
-            echo "Attempt $attempt/20: no github-pages artifact yet; waiting 3s."
             sleep 3
           done
 
@@ -79,4 +119,14 @@ jobs:
 
       - name: Deploy to GitHub Pages
         id: deployment
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+
+      - name: Wait before retrying deployment
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 30
+
+      - name: Deploy to GitHub Pages (retry)
+        id: deployment_retry
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v5
