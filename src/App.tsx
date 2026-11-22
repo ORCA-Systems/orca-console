@@ -3,6 +3,7 @@ import { Shell } from './components/shell/Shell';
 import { Overview } from './pages/Overview';
 import { Compute } from './pages/Compute';
 import { Workloads } from './pages/Workloads';
+import { Activity } from './pages/Activity';
 import { PagePlaceholder } from './components/PagePlaceholder';
 import { ROUTES, RoutePath, routeLabel } from './lib/routes';
 
@@ -35,7 +36,7 @@ export function App() {
 
   return (
     <Shell currentPath={path} navigate={navigate}>
-      {path === '#/overview' ? <Overview /> : path === '#/compute' ? <Compute /> : path === '#/workloads' ? <Workloads /> : <PagePlaceholder route={{ path, label: routeLabel(path) }} />}
+      {path === '#/overview' ? <Overview /> : path === '#/compute' ? <Compute /> : path === '#/workloads' ? <Workloads /> : path === '#/activity' ? <Activity /> : <PagePlaceholder route={{ path, label: routeLabel(path) }} />}
     </Shell>
   );
 }

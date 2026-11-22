@@ -15,6 +15,7 @@ import type {
   Workload,
   WorkloadState,
   ActivityEvent,
+  ActivitySeverity,
   LogEntry,
   DemoSettings,
 } from './types';
@@ -204,6 +205,10 @@ export function applyWorkloadAction(
   let next: Workload;
   let message: string;
   let activityMessage: string;
+  let activityDetail: string;
+  let activitySeverity: ActivitySeverity;
+  let logMessage: string;
+  let logLevel: LogEntry['level'];
 
   switch (action) {
     case 'start':
@@ -214,12 +219,20 @@ export function applyWorkloadAction(
         completedAt: undefined,
       };
       message = `Started ${workload.id} — marked running (simulated).`;
-      activityMessage = `Workload ${workload.id} started (simulated)`;
+      activityMessage = `Workload ${workload.id} started from the console`;
+      activityDetail = `${workload.name} was marked running in the local prototype. No container was launched.`;
+      activitySeverity = 'success';
+      logMessage = `Simulated start: ${workload.id} marked running; no runtime was created`;
+      logLevel = 'info';
       break;
     case 'stop':
       next = { ...workload, state: 'cancelled', completedAt: timestamp };
       message = `Stopped ${workload.id} — marked cancelled (simulated).`;
-      activityMessage = `Workload ${workload.id} stopped (simulated)`;
+      activityMessage = `Workload ${workload.id} stopped from the console`;
+      activityDetail = `${workload.name} was marked cancelled and its simulated resources were released. No container was stopped.`;
+      activitySeverity = 'warning';
+      logMessage = `Simulated stop: ${workload.id} marked cancelled; resources released locally`;
+      logLevel = 'warn';
       break;
     case 'retry':
       next = {
@@ -230,7 +243,11 @@ export function applyWorkloadAction(
         completedAt: undefined,
       };
       message = `Retried ${workload.id} — re-queued as pending (simulated).`;
-      activityMessage = `Workload ${workload.id} retried and re-queued (simulated)`;
+      activityMessage = `Workload ${workload.id} retried and re-queued`;
+      activityDetail = `${workload.name} returned to the pending queue. No job was resubmitted to a real scheduler.`;
+      activitySeverity = 'info';
+      logMessage = `Simulated retry: ${workload.id} re-queued as pending`;
+      logLevel = 'info';
       break;
   }
 
@@ -238,12 +255,21 @@ export function applyWorkloadAction(
     w.id === id ? next : w
   );
 
-  appendActivity({
+  const event = appendActivity({
     timestamp,
-    severity: 'info',
+    severity: activitySeverity,
     source: 'console',
     message: activityMessage,
+    detail: activityDetail,
     workloadId: id,
+  });
+
+  appendLog({
+    timestamp,
+    level: logLevel,
+    component: 'console',
+    message: logMessage,
+    eventId: event.id,
   });
 
   return { ok: true, workload: next, message };
@@ -268,8 +294,16 @@ export function appendActivity(event: Omit<ActivityEvent, 'id'>): ActivityEvent 
   return entry;
 }
 
-/* ---------- Activity & logs ---------- */
+let localLogCounter = 0;
 
+export function appendLog(entry: Omit<LogEntry, 'id'>): LogEntry {
+  localLogCounter += 1;
+  const log: LogEntry = { id: `log-local-${localLogCounter}`, ...entry };
+  MOCK_DATA.logs.push(log);
+  return log;
+}
+
+/* ---------- Activity & logs ---------- */
 export function getActivity(limit?: number): ActivityEvent[] {
   const events = MOCK_DATA.activity;
   return limit ? events.slice(-limit) : events;
@@ -278,6 +312,11 @@ export function getActivity(limit?: number): ActivityEvent[] {
 export function getLogs(limit?: number): LogEntry[] {
   const logs = MOCK_DATA.logs;
   return limit ? logs.slice(-limit) : logs;
+}
+
+/** Log lines recorded for one activity event, oldest first. */
+export function getLogsForEvent(eventId: string): LogEntry[] {
+  return MOCK_DATA.logs.filter((log) => log.eventId === eventId);
 }
 
 /* ---------- Settings ---------- */

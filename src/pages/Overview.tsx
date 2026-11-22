@@ -14,6 +14,7 @@ import {
   getActivity,
 } from '../lib/mock/access';
 import { UtilisationChart } from '../components/overview/UtilisationChart';
+import { severityTone } from '../components/activity/format';
 import type { NodeStatus } from '../lib/mock/types';
 
 interface TimeRangeOption {
@@ -262,7 +263,9 @@ export function Overview() {
                 {formatTime(event.timestamp)}
               </span>
               <span
-                className={`status status--${event.severity} activity-list__badge`}
+                className={`status status--${severityTone(
+                  event.severity
+                )} activity-list__badge`}
               >
                 {event.severity}
               </span>

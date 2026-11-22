@@ -84,14 +84,15 @@ export interface Workload {
 
 /* ---------- Activity events & logs ---------- */
 
-export type ActivitySeverity = 'info' | 'warning' | 'error';
+export type ActivitySeverity = 'info' | 'success' | 'warning' | 'error';
 
 export interface ActivityEvent {
   id: string;
   timestamp: string; // ISO 8601 timestamp
   severity: ActivitySeverity;
-  source: string; // e.g. "node-01", "scheduler"
+  source: string; // e.g. "node-01", "scheduler", "config"
   message: string;
+  detail?: string; // longer context shown in the expanded event view
   workloadId?: string;
 }
 
@@ -103,6 +104,7 @@ export interface LogEntry {
   level: LogLevel;
   component: string;
   message: string;
+  eventId?: string; // activity event these lines were recorded for
 }
 
 /* ---------- Demonstration settings ---------- */
