@@ -22,7 +22,8 @@ import {
   getWorkloads,
   type WorkloadAction,
 } from '../lib/mock/access';
-import type { ActivityEvent, WorkloadState } from '../lib/mock/types';
+import type { WorkloadState } from '../lib/mock/types';
+import { severityTone } from '../components/activity/format';
 import { WorkloadDetailDrawer } from '../components/workloads/WorkloadDetailDrawer';
 import {
   actionLabel,
@@ -50,10 +51,6 @@ const FILTERS: { value: Filter; label: string }[] = [
 ];
 
 const FEEDBACK_TIMEOUT_MS = 6000;
-
-function severityTone(severity: ActivityEvent['severity']): string {
-  return severity === 'warning' ? 'warn' : severity;
-}
 
 export function Workloads() {
   // The mock access layer owns workload state; this counter simply asks React

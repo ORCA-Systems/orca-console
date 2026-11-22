@@ -117,6 +117,19 @@ function checkActivityReferences(data: MockData): string[] {
   return violations;
 }
 
+function checkLogReferences(data: MockData): string[] {
+  const violations: string[] = [];
+  const eventIds = new Set(data.activity.map((e) => e.id));
+  data.logs.forEach((log) => {
+    if (log.eventId !== undefined && !eventIds.has(log.eventId)) {
+      violations.push(
+        `Log entry ${log.id} references unknown activity event ${log.eventId}`
+      );
+    }
+  });
+  return violations;
+}
+
 function checkTimestamps(data: MockData): string[] {
   const violations: string[] = [];
   const checkTs = (label: string, ts: string | undefined) => {
@@ -152,6 +165,7 @@ export function validateInvariants(data: MockData = MOCK_DATA): string[] {
     ...checkWorkloadStateConsistency(data),
     ...checkResourceRequests(data),
     ...checkActivityReferences(data),
+    ...checkLogReferences(data),
     ...checkTimestamps(data),
   ];
 }
